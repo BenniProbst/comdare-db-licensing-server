@@ -1,4 +1,5 @@
-# COMDARE Multi-Platform CI/CD Template v7.0.2 (BS-3040+BS-3046, S2635)
+# COMDARE Multi-Platform CI/CD Template v7.0.3 (BS-3040+BS-3046, S2671)
+# v7.0.3: L1/L2 module insteadOf rewrites + BEP→COMDARE variable migration (S2671)
 # v7.0.2: Aggregated Coverage Report (BS-3046) + gcovr==7.2 pinning + gcov-14 auto-detection
 # v7.0.1: Fix Docker x86 Pool shell quoting bug ('"'"' removed, matching ARM64/RISC-V pattern)
 # v7.0.0: Full Docker OS-Matrix — 18 Linux-Varianten (6 OS x 3 Versionen) pro Architektur-Pool
@@ -38,9 +39,9 @@
 # Everything else = allow_failure
 #
 # === Dependency Resolution (v6.0) ===
-# staged-build.py passes BEP_MODULE_DEPS when triggering pipelines.
+# staged-build.py passes COMDARE_MODULE_DEPS when triggering pipelines.
 # Before cmake configure, each dep's install tarball is downloaded from
-# MinIO buildsystem-artifacts bucket (deps/ prefix) and extracted to BEP_DEPS_DIR.
+# MinIO buildsystem-artifacts bucket (deps/ prefix) and extracted to COMDARE_DEPS_DIR.
 
 stages:
   - build
@@ -51,11 +52,11 @@ variables:
   GCC_VERSION: "14"
   BUILD_TYPE: "Debug"
   CXX_STANDARD: "23"
-  BEP_MODULE_DEPS: ""
-  BEP_DEPS_BUCKET: "buildsystem-artifacts"
-  BEP_DEPS_DIR: "/tmp/comdare-deps"
-  BEP_INSTALL_PREFIX: "${CI_PROJECT_DIR}/install"
-  BEP_LAYER: ""
+  COMDARE_MODULE_DEPS: ""
+  COMDARE_DEPS_BUCKET: "buildsystem-artifacts"
+  COMDARE_DEPS_DIR: "/tmp/comdare-deps"
+  COMDARE_INSTALL_PREFIX: "${CI_PROJECT_DIR}/install"
+  COMDARE_LAYER: ""
 
 # ============================================================
 # YAML Anchors — Shared Scripts
@@ -93,6 +94,20 @@ variables:
   git config --global url."http://oauth2:${FETCH_TOKEN}@gitlab-webservice-default.gitlab.svc:8181/comdare/research/archive/BigInteger".insteadOf "https://github.com/BenniProbst/BigInteger"
   git config --global url."http://oauth2:${FETCH_TOKEN}@gitlab-webservice-default.gitlab.svc:8181/comdare/products/cd-buildsystem-construct/layer2-abstraction/cd-buildsystem-logging".insteadOf "https://github.com/BenniProbst/cd-buildsystem-logging"
   git config --global url."http://oauth2:${FETCH_TOKEN}@gitlab-webservice-default.gitlab.svc:8181/comdare/products/cd-buildsystem-construct/layer3-orchestration/cd-buildsystem-sitl".insteadOf "https://github.com/BenniProbst/cd-buildsystem-sitl"
+  # L1 Foundation modules (used by SyncBuildSystemDependencies.cmake)
+  git config --global url."http://oauth2:${FETCH_TOKEN}@gitlab-webservice-default.gitlab.svc:8181/comdare/products/cd-buildsystem-construct/layer1-foundation/cd-buildsystem-dependency-manager".insteadOf "https://github.com/BenniProbst/cd-buildsystem-dependency-manager"
+  git config --global url."http://oauth2:${FETCH_TOKEN}@gitlab-webservice-default.gitlab.svc:8181/comdare/products/cd-buildsystem-construct/layer1-foundation/cd-buildsystem-platform-detection".insteadOf "https://github.com/BenniProbst/cd-buildsystem-platform-detection"
+  git config --global url."http://oauth2:${FETCH_TOKEN}@gitlab-webservice-default.gitlab.svc:8181/comdare/products/cd-buildsystem-construct/layer1-foundation/cd-buildsystem-package-manager".insteadOf "https://github.com/BenniProbst/cd-buildsystem-package-manager"
+  git config --global url."http://oauth2:${FETCH_TOKEN}@gitlab-webservice-default.gitlab.svc:8181/comdare/products/cd-buildsystem-construct/layer1-foundation/cd-buildsystem-compiler-manager".insteadOf "https://github.com/BenniProbst/cd-buildsystem-compiler-manager"
+  git config --global url."http://oauth2:${FETCH_TOKEN}@gitlab-webservice-default.gitlab.svc:8181/comdare/products/cd-buildsystem-construct/layer1-foundation/cd-buildsystem-build-mode-system".insteadOf "https://github.com/BenniProbst/cd-buildsystem-build-mode-system"
+  git config --global url."http://oauth2:${FETCH_TOKEN}@gitlab-webservice-default.gitlab.svc:8181/comdare/products/cd-buildsystem-construct/layer1-foundation/cd-buildsystem-validation-system".insteadOf "https://github.com/BenniProbst/cd-buildsystem-validation-system"
+  git config --global url."http://oauth2:${FETCH_TOKEN}@gitlab-webservice-default.gitlab.svc:8181/comdare/products/cd-buildsystem-construct/layer1-foundation/cd-buildsystem-build-utilities".insteadOf "https://github.com/BenniProbst/cd-buildsystem-build-utilities"
+  git config --global url."http://oauth2:${FETCH_TOKEN}@gitlab-webservice-default.gitlab.svc:8181/comdare/products/cd-buildsystem-construct/layer1-foundation/cd-buildsystem-core-utilities".insteadOf "https://github.com/BenniProbst/cd-buildsystem-core-utilities"
+  # L2 Abstraction modules
+  git config --global url."http://oauth2:${FETCH_TOKEN}@gitlab-webservice-default.gitlab.svc:8181/comdare/products/cd-buildsystem-construct/layer2-abstraction/cd-buildsystem-test-system".insteadOf "https://github.com/BenniProbst/cd-buildsystem-test-system"
+  git config --global url."http://oauth2:${FETCH_TOKEN}@gitlab-webservice-default.gitlab.svc:8181/comdare/products/cd-buildsystem-construct/layer2-abstraction/cd-buildsystem-process-management".insteadOf "https://github.com/BenniProbst/cd-buildsystem-process-management"
+  git config --global url."http://oauth2:${FETCH_TOKEN}@gitlab-webservice-default.gitlab.svc:8181/comdare/products/cd-buildsystem-construct/layer2-abstraction/cd-buildsystem-scheduling-manager".insteadOf "https://github.com/BenniProbst/cd-buildsystem-scheduling-manager"
+  git config --global url."http://oauth2:${FETCH_TOKEN}@gitlab-webservice-default.gitlab.svc:8181/comdare/products/cd-buildsystem-construct/layer2-abstraction/cd-buildsystem-licensing-all".insteadOf "https://github.com/BenniProbst/cd-buildsystem-licensing-all"
 
 # --- BM/Exotic FetchContent auth + GitHub->GitLab mirror rewrites (external URL) ---
 .bm-fetch-setup: &bm-fetch-setup |
@@ -105,12 +120,26 @@ variables:
   git config --global url."https://oauth2:${FETCH_TOKEN}@gitlab.comdare.de/comdare/research/archive/BigInteger".insteadOf "https://github.com/BenniProbst/BigInteger"
   git config --global url."https://oauth2:${FETCH_TOKEN}@gitlab.comdare.de/comdare/products/cd-buildsystem-construct/layer2-abstraction/cd-buildsystem-logging".insteadOf "https://github.com/BenniProbst/cd-buildsystem-logging"
   git config --global url."https://oauth2:${FETCH_TOKEN}@gitlab.comdare.de/comdare/products/cd-buildsystem-construct/layer3-orchestration/cd-buildsystem-sitl".insteadOf "https://github.com/BenniProbst/cd-buildsystem-sitl"
+  # L1 Foundation modules
+  git config --global url."https://oauth2:${FETCH_TOKEN}@gitlab.comdare.de/comdare/products/cd-buildsystem-construct/layer1-foundation/cd-buildsystem-dependency-manager".insteadOf "https://github.com/BenniProbst/cd-buildsystem-dependency-manager"
+  git config --global url."https://oauth2:${FETCH_TOKEN}@gitlab.comdare.de/comdare/products/cd-buildsystem-construct/layer1-foundation/cd-buildsystem-platform-detection".insteadOf "https://github.com/BenniProbst/cd-buildsystem-platform-detection"
+  git config --global url."https://oauth2:${FETCH_TOKEN}@gitlab.comdare.de/comdare/products/cd-buildsystem-construct/layer1-foundation/cd-buildsystem-package-manager".insteadOf "https://github.com/BenniProbst/cd-buildsystem-package-manager"
+  git config --global url."https://oauth2:${FETCH_TOKEN}@gitlab.comdare.de/comdare/products/cd-buildsystem-construct/layer1-foundation/cd-buildsystem-compiler-manager".insteadOf "https://github.com/BenniProbst/cd-buildsystem-compiler-manager"
+  git config --global url."https://oauth2:${FETCH_TOKEN}@gitlab.comdare.de/comdare/products/cd-buildsystem-construct/layer1-foundation/cd-buildsystem-build-mode-system".insteadOf "https://github.com/BenniProbst/cd-buildsystem-build-mode-system"
+  git config --global url."https://oauth2:${FETCH_TOKEN}@gitlab.comdare.de/comdare/products/cd-buildsystem-construct/layer1-foundation/cd-buildsystem-validation-system".insteadOf "https://github.com/BenniProbst/cd-buildsystem-validation-system"
+  git config --global url."https://oauth2:${FETCH_TOKEN}@gitlab.comdare.de/comdare/products/cd-buildsystem-construct/layer1-foundation/cd-buildsystem-build-utilities".insteadOf "https://github.com/BenniProbst/cd-buildsystem-build-utilities"
+  git config --global url."https://oauth2:${FETCH_TOKEN}@gitlab.comdare.de/comdare/products/cd-buildsystem-construct/layer1-foundation/cd-buildsystem-core-utilities".insteadOf "https://github.com/BenniProbst/cd-buildsystem-core-utilities"
+  # L2 Abstraction modules
+  git config --global url."https://oauth2:${FETCH_TOKEN}@gitlab.comdare.de/comdare/products/cd-buildsystem-construct/layer2-abstraction/cd-buildsystem-test-system".insteadOf "https://github.com/BenniProbst/cd-buildsystem-test-system"
+  git config --global url."https://oauth2:${FETCH_TOKEN}@gitlab.comdare.de/comdare/products/cd-buildsystem-construct/layer2-abstraction/cd-buildsystem-process-management".insteadOf "https://github.com/BenniProbst/cd-buildsystem-process-management"
+  git config --global url."https://oauth2:${FETCH_TOKEN}@gitlab.comdare.de/comdare/products/cd-buildsystem-construct/layer2-abstraction/cd-buildsystem-scheduling-manager".insteadOf "https://github.com/BenniProbst/cd-buildsystem-scheduling-manager"
+  git config --global url."https://oauth2:${FETCH_TOKEN}@gitlab.comdare.de/comdare/products/cd-buildsystem-construct/layer2-abstraction/cd-buildsystem-licensing-all".insteadOf "https://github.com/BenniProbst/cd-buildsystem-licensing-all"
 
 # --- K8s MinIO dependency download (S3v4 signed) ---
 .k8s-deps-download: &k8s-deps-download |
-  if [ -n "$BEP_MODULE_DEPS" ] && [ -n "$MINIO_ENDPOINT" ] && [ -n "$MINIO_ACCESS_KEY" ]; then
-    echo "=== Downloading ${BEP_MODULE_DEPS} from MinIO ==="
-    mkdir -p "$BEP_DEPS_DIR"
+  if [ -n "$COMDARE_MODULE_DEPS" ] && [ -n "$MINIO_ENDPOINT" ] && [ -n "$MINIO_ACCESS_KEY" ]; then
+    echo "=== Downloading ${COMDARE_MODULE_DEPS} from MinIO ==="
+    mkdir -p "$COMDARE_DEPS_DIR"
     python3 << 'DEPSEOF'
   import hashlib, hmac, datetime, os, sys, urllib.request, urllib.parse, urllib.error, tarfile, io, ssl
   ctx = ssl.create_default_context()
@@ -152,9 +181,9 @@ variables:
   endpoint = os.environ.get('MINIO_ENDPOINT', '')
   access = os.environ.get('MINIO_ACCESS_KEY', '')
   secret = os.environ.get('MINIO_SECRET_KEY', '')
-  deps_dir = os.environ.get('BEP_DEPS_DIR', '/tmp/comdare-deps')
-  deps_bucket = os.environ.get('BEP_DEPS_BUCKET', 'buildsystem-artifacts')
-  deps_list = os.environ.get('BEP_MODULE_DEPS', '').split()
+  deps_dir = os.environ.get('COMDARE_DEPS_DIR', '/tmp/comdare-deps')
+  deps_bucket = os.environ.get('COMDARE_DEPS_BUCKET', 'buildsystem-artifacts')
+  deps_list = os.environ.get('COMDARE_MODULE_DEPS', '').split()
 
   ok = 0
   for mod in deps_list:
@@ -171,9 +200,9 @@ variables:
           print(f'  [SKIP] {mod} (not in {deps_bucket})')
   print(f'Downloaded {ok}/{len(deps_list)} dependencies')
   DEPSEOF
-    export CMAKE_PREFIX_PATH="$BEP_DEPS_DIR:${CMAKE_PREFIX_PATH:-}"
+    export CMAKE_PREFIX_PATH="$COMDARE_DEPS_DIR:${CMAKE_PREFIX_PATH:-}"
   else
-    echo "No upstream deps configured (BEP_MODULE_DEPS empty or MinIO not set)"
+    echo "No upstream deps configured (COMDARE_MODULE_DEPS empty or MinIO not set)"
   fi
 
 # --- Docker build script (shared by x86_64/ARM64/RISC-V Docker pools) ---
@@ -232,9 +261,9 @@ build-k8s-debian:
     - *k8s-deps-download
   script:
     - echo "=== COMDARE CI v7.0.0 — K8s Debian/GCC14 (C++${CXX_STANDARD}) ==="
-    - '[ -n "$BEP_LAYER" ] && echo "Layer: $BEP_LAYER" || true'
+    - '[ -n "$COMDARE_LAYER" ] && echo "Layer: $COMDARE_LAYER" || true'
     - test -f CMakeLists.txt || { echo "No CMakeLists.txt — skipping"; kill $KEEPALIVE_PID 2>/dev/null || true; exit 0; }
-    - cmake -B build-k8s-debian -G Ninja -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DBUILD_TESTS=ON -DCMAKE_CXX_FLAGS="--coverage -std=c++${CXX_STANDARD}" -DCMAKE_C_FLAGS=--coverage -DCMAKE_EXE_LINKER_FLAGS=--coverage -DCMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH:-}" -DCMAKE_INSTALL_PREFIX="${BEP_INSTALL_PREFIX}"
+    - cmake -B build-k8s-debian -G Ninja -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DBUILD_TESTS=ON -DCMAKE_CXX_FLAGS="--coverage -std=c++${CXX_STANDARD}" -DCMAKE_C_FLAGS=--coverage -DCMAKE_EXE_LINKER_FLAGS=--coverage -DCMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH:-}" -DCMAKE_INSTALL_PREFIX="${COMDARE_INSTALL_PREFIX}"
     - cmake --build build-k8s-debian -j $(nproc)
     - cd build-k8s-debian && ctest --output-on-failure -j$(nproc) || true
     - cd $CI_PROJECT_DIR
@@ -242,11 +271,11 @@ build-k8s-debian:
     - sleep 1
     - 'GCOV_EXE=""; command -v gcov-14 >/dev/null 2>&1 && GCOV_EXE="--gcov-executable gcov-14"; gcovr --root . --filter "include/" --filter "src/" --exclude "build-k8s-debian/_deps" $GCOV_EXE --print-summary --xml coverage-k8s-debian.xml 2>/dev/null || true'
     - |
-      cmake --install build-k8s-debian --prefix "${BEP_INSTALL_PREFIX}" 2>/dev/null || true
-      if [ -d "${BEP_INSTALL_PREFIX}" ] && [ "$(ls -A ${BEP_INSTALL_PREFIX} 2>/dev/null)" ]; then
-        tar czf install-k8s-debian.tar.gz -C "${BEP_INSTALL_PREFIX}" .
-        echo "Install tree created: $(du -sh ${BEP_INSTALL_PREFIX} | cut -f1)"
-        rm -rf "${BEP_INSTALL_PREFIX}"
+      cmake --install build-k8s-debian --prefix "${COMDARE_INSTALL_PREFIX}" 2>/dev/null || true
+      if [ -d "${COMDARE_INSTALL_PREFIX}" ] && [ "$(ls -A ${COMDARE_INSTALL_PREFIX} 2>/dev/null)" ]; then
+        tar czf install-k8s-debian.tar.gz -C "${COMDARE_INSTALL_PREFIX}" .
+        echo "Install tree created: $(du -sh ${COMDARE_INSTALL_PREFIX} | cut -f1)"
+        rm -rf "${COMDARE_INSTALL_PREFIX}"
       fi
   coverage: '/lines:\s+(\d+\.\d+)%/'
   artifacts:
@@ -274,10 +303,10 @@ build-k8s-ubuntu:
     - *k8s-deps-download
   script:
     - echo "=== COMDARE CI v7.0.0 — K8s Ubuntu 24.04 (C++${CXX_STANDARD}) ==="
-    - '[ -n "$BEP_LAYER" ] && echo "Layer: $BEP_LAYER" || true'
+    - '[ -n "$COMDARE_LAYER" ] && echo "Layer: $COMDARE_LAYER" || true'
     - test -f CMakeLists.txt || { echo "No CMakeLists.txt — skipping"; kill $KEEPALIVE_PID 2>/dev/null || true; exit 0; }
     - 'GEN=""; command -v ninja >/dev/null 2>&1 && GEN="-G Ninja"'
-    - cmake -B build-k8s-ubuntu $GEN -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DBUILD_TESTS=ON -DCMAKE_CXX_FLAGS="--coverage -std=c++${CXX_STANDARD}" -DCMAKE_C_FLAGS=--coverage -DCMAKE_EXE_LINKER_FLAGS=--coverage -DCMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH:-}" -DCMAKE_INSTALL_PREFIX="${BEP_INSTALL_PREFIX}"
+    - cmake -B build-k8s-ubuntu $GEN -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DBUILD_TESTS=ON -DCMAKE_CXX_FLAGS="--coverage -std=c++${CXX_STANDARD}" -DCMAKE_C_FLAGS=--coverage -DCMAKE_EXE_LINKER_FLAGS=--coverage -DCMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH:-}" -DCMAKE_INSTALL_PREFIX="${COMDARE_INSTALL_PREFIX}"
     - cmake --build build-k8s-ubuntu -j $(nproc)
     - cd build-k8s-ubuntu && ctest --output-on-failure -j$(nproc) || true
     - cd $CI_PROJECT_DIR
@@ -285,11 +314,11 @@ build-k8s-ubuntu:
     - sleep 1
     - 'GCOV_EXE=""; command -v gcov-14 >/dev/null 2>&1 && GCOV_EXE="--gcov-executable gcov-14"; gcovr --root . --filter "include/" --filter "src/" --exclude "build-k8s-ubuntu/_deps" $GCOV_EXE --print-summary --xml coverage-k8s-ubuntu.xml 2>/dev/null || true'
     - |
-      cmake --install build-k8s-ubuntu --prefix "${BEP_INSTALL_PREFIX}" 2>/dev/null || true
-      if [ -d "${BEP_INSTALL_PREFIX}" ] && [ "$(ls -A ${BEP_INSTALL_PREFIX} 2>/dev/null)" ]; then
-        tar czf install-k8s-ubuntu.tar.gz -C "${BEP_INSTALL_PREFIX}" .
-        echo "Install tree created: $(du -sh ${BEP_INSTALL_PREFIX} | cut -f1)"
-        rm -rf "${BEP_INSTALL_PREFIX}"
+      cmake --install build-k8s-ubuntu --prefix "${COMDARE_INSTALL_PREFIX}" 2>/dev/null || true
+      if [ -d "${COMDARE_INSTALL_PREFIX}" ] && [ "$(ls -A ${COMDARE_INSTALL_PREFIX} 2>/dev/null)" ]; then
+        tar czf install-k8s-ubuntu.tar.gz -C "${COMDARE_INSTALL_PREFIX}" .
+        echo "Install tree created: $(du -sh ${COMDARE_INSTALL_PREFIX} | cut -f1)"
+        rm -rf "${COMDARE_INSTALL_PREFIX}"
       fi
   coverage: '/lines:\s+(\d+\.\d+)%/'
   artifacts:
@@ -320,32 +349,32 @@ build-debian-x86:
     - 'echo "Toolchain: gcc $(gcc -dumpversion 2>/dev/null), cmake $(cmake --version 2>/dev/null | head -1)"'
     - *bm-fetch-setup
     - |
-      if [ -n "$BEP_MODULE_DEPS" ] && [ -n "$MINIO_ENDPOINT" ] && [ -n "$MINIO_ACCESS_KEY" ]; then
-        echo "=== Downloading ${BEP_MODULE_DEPS} ==="
-        mkdir -p "$BEP_DEPS_DIR"
-        for mod in $BEP_MODULE_DEPS; do
+      if [ -n "$COMDARE_MODULE_DEPS" ] && [ -n "$MINIO_ENDPOINT" ] && [ -n "$MINIO_ACCESS_KEY" ]; then
+        echo "=== Downloading ${COMDARE_MODULE_DEPS} ==="
+        mkdir -p "$COMDARE_DEPS_DIR"
+        for mod in $COMDARE_MODULE_DEPS; do
           python3 -c "
       import urllib.request, ssl, os, tarfile, io
       ctx = ssl.create_default_context(); ctx.check_hostname = False; ctx.verify_mode = ssl.CERT_NONE
-      url = os.environ['MINIO_ENDPOINT'] + '/${BEP_DEPS_BUCKET}/${mod}/latest/linux-x86_64/install.tar.gz'
+      url = os.environ['MINIO_ENDPOINT'] + '/${COMDARE_DEPS_BUCKET}/${mod}/latest/linux-x86_64/install.tar.gz'
       try:
           data = urllib.request.urlopen(url, context=ctx, timeout=30).read()
-          dest = os.path.join(os.environ.get('BEP_DEPS_DIR','/tmp/comdare-deps'), '${mod}')
+          dest = os.path.join(os.environ.get('COMDARE_DEPS_DIR','/tmp/comdare-deps'), '${mod}')
           os.makedirs(dest, exist_ok=True); tarfile.open(fileobj=io.BytesIO(data), mode='r:gz').extractall(dest)
           print(f'  [OK] ${mod}')
       except Exception as e: print(f'  [SKIP] ${mod} ({e})')
       " || true
         done
-        export CMAKE_PREFIX_PATH="$BEP_DEPS_DIR:${CMAKE_PREFIX_PATH:-}"
+        export CMAKE_PREFIX_PATH="$COMDARE_DEPS_DIR:${CMAKE_PREFIX_PATH:-}"
       fi
   script:
     - test -f CMakeLists.txt || { echo "No CMakeLists.txt — skipping"; exit 0; }
-    - cmake -B build-debian -G Ninja -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DBUILD_TESTS=ON -DCMAKE_CXX_FLAGS="--coverage -std=c++${CXX_STANDARD}" -DCMAKE_C_FLAGS=--coverage -DCMAKE_EXE_LINKER_FLAGS=--coverage -DCMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH:-}" -DCMAKE_INSTALL_PREFIX="${BEP_INSTALL_PREFIX}"
+    - cmake -B build-debian -G Ninja -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DBUILD_TESTS=ON -DCMAKE_CXX_FLAGS="--coverage -std=c++${CXX_STANDARD}" -DCMAKE_C_FLAGS=--coverage -DCMAKE_EXE_LINKER_FLAGS=--coverage -DCMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH:-}" -DCMAKE_INSTALL_PREFIX="${COMDARE_INSTALL_PREFIX}"
     - cmake --build build-debian -j $(nproc)
     - cd build-debian && ctest --output-on-failure -j$(nproc) || true
     - cd $CI_PROJECT_DIR
     - 'command -v gcovr >/dev/null && { GCOV_EXE=""; command -v gcov-14 >/dev/null 2>&1 && GCOV_EXE="--gcov-executable gcov-14"; gcovr --root . --filter include/ --filter src/ --exclude build-debian/_deps $GCOV_EXE --print-summary --xml coverage-debian.xml; } || echo "gcovr not found — skipping coverage"'
-    - cmake --install build-debian --prefix "${BEP_INSTALL_PREFIX}" 2>/dev/null || true
+    - cmake --install build-debian --prefix "${COMDARE_INSTALL_PREFIX}" 2>/dev/null || true
   coverage: '/lines:\s+(\d+\.\d+)%/'
   artifacts:
     paths:
@@ -370,32 +399,32 @@ build-ubuntu-x86:
     - 'echo "Toolchain: gcc $(gcc -dumpversion 2>/dev/null), cmake $(cmake --version 2>/dev/null | head -1)"'
     - *bm-fetch-setup
     - |
-      if [ -n "$BEP_MODULE_DEPS" ] && [ -n "$MINIO_ENDPOINT" ] && [ -n "$MINIO_ACCESS_KEY" ]; then
-        echo "=== Downloading ${BEP_MODULE_DEPS} ==="
-        mkdir -p "$BEP_DEPS_DIR"
-        for mod in $BEP_MODULE_DEPS; do
+      if [ -n "$COMDARE_MODULE_DEPS" ] && [ -n "$MINIO_ENDPOINT" ] && [ -n "$MINIO_ACCESS_KEY" ]; then
+        echo "=== Downloading ${COMDARE_MODULE_DEPS} ==="
+        mkdir -p "$COMDARE_DEPS_DIR"
+        for mod in $COMDARE_MODULE_DEPS; do
           python3 -c "
       import urllib.request, ssl, os, tarfile, io
       ctx = ssl.create_default_context(); ctx.check_hostname = False; ctx.verify_mode = ssl.CERT_NONE
-      url = os.environ['MINIO_ENDPOINT'] + '/${BEP_DEPS_BUCKET}/${mod}/latest/linux-x86_64/install.tar.gz'
+      url = os.environ['MINIO_ENDPOINT'] + '/${COMDARE_DEPS_BUCKET}/${mod}/latest/linux-x86_64/install.tar.gz'
       try:
           data = urllib.request.urlopen(url, context=ctx, timeout=30).read()
-          dest = os.path.join(os.environ.get('BEP_DEPS_DIR','/tmp/comdare-deps'), '${mod}')
+          dest = os.path.join(os.environ.get('COMDARE_DEPS_DIR','/tmp/comdare-deps'), '${mod}')
           os.makedirs(dest, exist_ok=True); tarfile.open(fileobj=io.BytesIO(data), mode='r:gz').extractall(dest)
           print(f'  [OK] ${mod}')
       except Exception as e: print(f'  [SKIP] ${mod} ({e})')
       " || true
         done
-        export CMAKE_PREFIX_PATH="$BEP_DEPS_DIR:${CMAKE_PREFIX_PATH:-}"
+        export CMAKE_PREFIX_PATH="$COMDARE_DEPS_DIR:${CMAKE_PREFIX_PATH:-}"
       fi
   script:
     - test -f CMakeLists.txt || { echo "No CMakeLists.txt — skipping"; exit 0; }
-    - cmake -B build-ubuntu -G Ninja -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DBUILD_TESTS=ON -DCMAKE_CXX_FLAGS="--coverage -std=c++${CXX_STANDARD}" -DCMAKE_C_FLAGS=--coverage -DCMAKE_EXE_LINKER_FLAGS=--coverage -DCMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH:-}" -DCMAKE_INSTALL_PREFIX="${BEP_INSTALL_PREFIX}"
+    - cmake -B build-ubuntu -G Ninja -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DBUILD_TESTS=ON -DCMAKE_CXX_FLAGS="--coverage -std=c++${CXX_STANDARD}" -DCMAKE_C_FLAGS=--coverage -DCMAKE_EXE_LINKER_FLAGS=--coverage -DCMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH:-}" -DCMAKE_INSTALL_PREFIX="${COMDARE_INSTALL_PREFIX}"
     - cmake --build build-ubuntu -j $(nproc)
     - cd build-ubuntu && ctest --output-on-failure -j$(nproc) || true
     - cd $CI_PROJECT_DIR
     - 'command -v gcovr >/dev/null && { GCOV_EXE=""; command -v gcov-14 >/dev/null 2>&1 && GCOV_EXE="--gcov-executable gcov-14"; gcovr --root . --filter include/ --filter src/ --exclude build-ubuntu/_deps $GCOV_EXE --print-summary --xml coverage-ubuntu.xml; } || echo "gcovr not found — skipping coverage"'
-    - cmake --install build-ubuntu --prefix "${BEP_INSTALL_PREFIX}" 2>/dev/null || true
+    - cmake --install build-ubuntu --prefix "${COMDARE_INSTALL_PREFIX}" 2>/dev/null || true
   coverage: '/lines:\s+(\d+\.\d+)%/'
   artifacts:
     paths:
@@ -871,9 +900,9 @@ aggregate-results:
   rules:
     - when: always
   script:
-    - echo "=== COMDARE CI v7.0.2 — Aggregate Results ==="
-    - '[ -n "$BEP_LAYER" ] && echo "Layer: $BEP_LAYER" || true'
-    - '[ -n "$BEP_MODULE_DEPS" ] && echo "Deps: $BEP_MODULE_DEPS" || true'
+    - echo "=== COMDARE CI v7.0.3 — Aggregate Results ==="
+    - '[ -n "$COMDARE_LAYER" ] && echo "Layer: $COMDARE_LAYER" || true'
+    - '[ -n "$COMDARE_MODULE_DEPS" ] && echo "Deps: $COMDARE_MODULE_DEPS" || true'
     - |
       echo ""
       echo "=== K8s Pool (2 jobs, mandatory) ==="
@@ -1010,7 +1039,7 @@ aggregate-results:
     - |
       echo ""
       echo "Pipeline $CI_PIPELINE_ID complete on $(date -u)"
-      echo "v7.0.2: 66 jobs (8 native + 54 Docker + 2 Windows + aggregate + upload)"
+      echo "v7.0.3: 66 jobs (8 native + 54 Docker + 2 Windows + aggregate + upload)"
   coverage: '/lines:\s+(\d+\.\d+)%/'
   artifacts:
     paths:
@@ -1034,7 +1063,7 @@ upload-to-minio:
   tags:
     - kubernetes
   script:
-    - echo "=== COMDARE CI v7.0.2 — MinIO Upload (artifacts + deps) ==="
+    - echo "=== COMDARE CI v7.0.3 — MinIO Upload (artifacts + deps) ==="
     - echo "RBMM Hierarchy — {project}/{platform}/{arch}/{runner_class}/{pipeline_id}/"
     - |
       python3 << 'PYEOF'
@@ -1121,7 +1150,7 @@ upload-to-minio:
       print(f'\nArtifacts upload: {ok}/{len(uploads)} files')
 
       # === Part 2: install trees for downstream (same bucket, deps/ prefix) ===
-      bucket_deps = os.environ.get('BEP_DEPS_BUCKET', 'buildsystem-artifacts')
+      bucket_deps = os.environ.get('COMDARE_DEPS_BUCKET', 'buildsystem-artifacts')
       module_name = proj.split('/')[-1] if '/' in proj else proj
       for tarball in glob.glob('install-*.tar.gz'):
           variant = tarball.replace('install-', '').replace('.tar.gz', '')
