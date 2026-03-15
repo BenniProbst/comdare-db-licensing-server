@@ -39,7 +39,7 @@
 
   <dimensions>
     <dimension id="D3" name="Build Modes" enabled="true" phase="2+">
-      <include file="${BEP_BUILDSYSTEM_ROOT}/cookbooks/base.xml" />
+      <include file="${COMDARE_BUILDSYSTEM_ROOT}/cookbooks/base.xml" />
     </dimension>
     <dimension id="D5" name="Build Configurations" enabled="true" />
   </dimensions>

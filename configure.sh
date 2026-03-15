@@ -2,8 +2,8 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if [[ -n "${BEP_BUILDSYSTEM_PATH:-}" ]]; then
-  BUILDSYSTEM_DIR="$BEP_BUILDSYSTEM_PATH"
+if [[ -n "${COMDARE_BUILDSYSTEM_PATH:-}" ]]; then
+  BUILDSYSTEM_DIR="$COMDARE_BUILDSYSTEM_PATH"
 elif [[ -f "$SCRIPT_DIR/../../Products/rc-buildsystem-construct/Layer1-Foundation/rc-buildsystem-core/scripts/interface.sh" ]]; then
   BUILDSYSTEM_DIR="$SCRIPT_DIR/../../Products/rc-buildsystem-construct/Layer1-Foundation/rc-buildsystem-core"
 elif [[ -f "$SCRIPT_DIR/third_party/rc-buildsystem-core/scripts/interface.sh" ]]; then
